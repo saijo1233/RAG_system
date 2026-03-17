@@ -1,0 +1,7 @@
+FROM "./Qwen3-4B-Q4_K_M.gguf"
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "User:"
+PARAMETER stop "Question:"
+PARAMETER stop "Вопрос:"
+PARAMETER temperature 0.2
