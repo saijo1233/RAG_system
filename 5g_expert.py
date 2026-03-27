@@ -4,8 +4,8 @@ from pypdf import PdfReader
 import ollama
 import faiss
 
-PDF_FILE = "3_ПП_финальный_отчёт_с_сокращениями.pdf"
-DB_DIR = "my_5g_database_word"
+PDF_DIR = "Database"
+DB_DIR = "Vector_embeddings_database/3GPP_Database"
 MODEL_NAME = "my-qwen"
 EMBED_MODEL = "bge-m3"
 
@@ -41,10 +41,23 @@ def create_or_load_db():
         return index, chunks
 
     print("--- База не найдена. Создаю новую... ---")
-    chunks = get_pdf_chunks(PDF_FILE)
-    if not chunks: return None, []
+    chunks = []
+    if not os.path.exists(PDF_DIR):
+        print(f"Внимание: Папка '{PDF_DIR}' не найдена. Создаю её...")
+        os.makedirs(PDF_DIR, exist_ok=True)
+        print(f"Пожалуйста, поместите PDF-файлы в папку '{PDF_DIR}' и перезапустите скрипт.")
+        return None, []
 
-    print(f"--- Генерация векторов (может занять время)... ---")
+    for filename in os.listdir(PDF_DIR):
+        if filename.lower().endswith(".pdf"):
+            filepath = os.path.join(PDF_DIR, filename)
+            chunks.extend(get_pdf_chunks(filepath))
+
+    if not chunks:
+        print(f"Ошибка: Не найдено PDF-файлов в папке '{PDF_DIR}' или в них отсутствует текст.")
+        return None, []
+
+    print(f"--- Генерация векторов для {len(chunks)} фрагментов (может занять время)... ---")
     embeddings_list = []
     for i, txt in enumerate(chunks):
         resp = client.embeddings(model=EMBED_MODEL, prompt=txt)
